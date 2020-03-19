@@ -3,6 +3,7 @@
 
 #自动风扇控制程序，使用wringPi的gpio命令来操作GPIO
 
+
 import subprocess,time
 
 #控制风扇的GPIO
