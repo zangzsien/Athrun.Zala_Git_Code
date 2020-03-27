@@ -1,0 +1,148 @@
+/*1.除HardwareSerial外，Arduino还提供了SoftwareSerial类库，它可以将你的其他数字引脚通过程序模拟成串口通信引脚.*/
+
+/*2.通常我们将Arduino UNO上自带的串口称为硬件串口，而使用SoftwareSerial类库模拟成的串口，称为软件模拟串口（简称软串口）。
+在Arduino UNO上，提供了0（RX）、1（TX）一组硬件串口，可与外围串口设备通信，如果要连接更多的串口设备，可以使用软串口。
+软串口是由程序模拟实现的，使用方法类似硬件串口，但有一定局限性：在Arduino UNO MEGA上部分引脚不能被作为软串口接收引脚，
+且软串口接收引脚波特率建议不要超过57600。*/
+
+/*3.SoftwareSerial类成员函数
+软串口类库并非Arduino UNO核心类库，因此使用前你需要先声明包含SoftwareSerial.h头文件。
+其中定义的成员函数与硬件串口类似，available()、begin()、read()、write()、print()、println()、peek() 等用法相同.
+此外软串口后还有如下成员函数：*/
+
+/*4.SoftwareSerial()
+SoftwareSerial类的构造函数，通过它可指定软串口RX、TX引脚。
+语法：
+SoftwareSerial mySerial= SoftwareSerial(rxPin, txPin)
+SoftwareSerial mySerial(rxPin, txPin)
+参数：
+mySerial：用户自定义软件串口对象
+rxPin：软串口接收引脚
+txPin：软串口发送引脚*/
+
+/*5.listen()
+开启软串口监听状态。
+Arduino UNO在同一时间仅能监听一个软串口，当你需要监听某一软串口时，需要该对象调用这个函数开启监听功能。
+语法：
+mySerial.listen()
+参数：
+mySerial：用户自定义的软件串口对象
+返回值：
+无*/
+
+/*6.isListening()
+监测软串口是否正在监听状态。
+语法：
+mySerial.isListening()
+参数：
+mySerial：用户自定义的软件串口对象
+返回值：
+Boolean型
+True：正在监听
+False：没有监听*/
+
+/*7.end()
+停止监听软串口。
+语法：
+mySerial. end()
+参数：
+mySerial：用户自定义的软件串口对象
+返回值：
+Boolean型
+True：关闭监听成功
+False：关闭监听失败*/
+
+/*8.overflow()
+检测缓冲区是否溢出。
+语法：
+mySerial.overflow()
+参数：
+mySerial：用户自定义的软件串口对象
+返回值：
+Boolean型
+True：溢出
+False：没有溢出 */
+
+/* 9.建立软串口通信
+SoftwareSerial类库是Arduino IDE默认提供的一个第三方类库，和硬件串口不同，
+其声明并没有包含在Arduino核心库中，因此要建立软串口通信，首先需要声明包含SoftwareSerial.h头文件
+然后即可使用该类库中的构造函数，初始化一个软串口实例。如：
+SoftwareSerial mySerial(2, 3);
+即是新建一个名为mySerial的软串口，并将2号引脚作为RX端，3号引脚作为TX端。完整示例如下：*/
+
+/*
+Arduino UNO软串口通信
+*/
+ 
+#include <SoftwareSerial.h>
+//实例化软串口
+SoftwareSerial mySerial(2, 3); // RX, TX
+ 
+void setup()
+{
+  Serial.begin(115200);
+  while (!Serial) {
+  }
+ 
+  Serial.println("Goodnight moon!");
+ 
+  mySerial.begin(9600);
+  mySerial.println("Hello, world?");
+}
+ 
+void loop()
+{
+  if (mySerial.available())
+    Serial.write(mySerial.read());
+  if (Serial.available())
+    mySerial.write(Serial.read());
+}
+
+/* 10.在实际使用中，你可能还会用到其他串口设备，如串口无线透传模块、串口传感器等，
+只要是标准串口设备，其程序的编写方法都基本相同。*/
+
+/*11.同时使用多个软串口
+当需要连接多个串口设备时，可以建立多个软串口，但限于软串口的实现原理，
+Arduino UNO只能同时监听一个软串口，当存在多个软串口设备时，你需要使用listen() 函数指定需要监听的设备。
+如程序中存在portOne、portTwo两个软串口对象时，你欲监听portOne，便需要使用portOne.listen() 语句，
+要切换监听port2，便使用portTwo.listen() 语句。示例程序如下：*/
+/*
+Arduino UNO软串口通信
+通过listen()切换监听软串口
+*/
+ 
+#include <SoftwareSerial.h>
+SoftwareSerial portOne(10, 11);
+SoftwareSerial portTwo(8, 9);
+ 
+void setup() {
+  Serial.begin(9600);
+  while (!Serial) {
+  }
+ 
+  portOne.begin(9600);
+  portTwo.begin(9600);
+}
+ 
+void loop() {
+//监听1号软串口
+  portOne.listen();
+ 
+  Serial.println("Data from port one:");
+  while (portOne.available() > 0) {
+    char inByte = portOne.read();
+    Serial.write(inByte);
+  }
+ 
+  Serial.println();
+//监听2号软串口
+  portTwo.listen();
+ 
+  Serial.println("Data from port two:");
+  while (portTwo.available() > 0) {
+    char inByte = portTwo.read();
+    Serial.write(inByte);
+  }
+ 
+  Serial.println();
+}
